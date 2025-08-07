@@ -1,0 +1,54 @@
+{
+  "name": "ticket-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "workflow-start",
+        "method": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "WebhookTrigger",
+      "name": "Trigger Ticket Workflow",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    ticketId: $json.ticketId,\n    customerId: $json.customerId,\n    status: \"resolved\"\n  }\n}];"
+      },
+      "id": "FunctionNode",
+      "name": "Simulate Logic",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://flowbit-api:3000/webhook/ticket-done",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "{\n  \"ticketId\": \"={{$json.ticketId}}\",\n  \"status\": \"={{$json.status}}\"\n}",
+        "headerParametersJson": "{\n  \"x-shared-secret\": \"your_shared_secret_here\"\n}"
+      },
+      "id": "HTTPNode",
+      "name": "Callback to Flowbit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [750, 300]
+    }
+  ],
+  "connections": {
+    "Trigger Ticket Workflow": {
+      "main": [["FunctionNode"]]
+    },
+    "Simulate Logic": {
+      "main": [["Callback to Flowbit"]]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "tags": []
+}
